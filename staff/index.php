@@ -16,6 +16,25 @@
 	<script src="../libs/bootstrap.min.js"></script>
 	<link rel="stylesheet" href="../common.css">
 	<link rel="stylesheet" href="../libs/fontawesome.min.css">
+	<script>
+		function validateSearch(e){
+			//e.preventDefault();
+			//Step 1) Validate Student ID list
+			id_list = document.getElementById("stu_id_list");
+			id_list_rawcontents = id_list.value;
+			if (id_list_rawcontents == "")
+			{
+				return false;
+			}
+			id_list_preprocessed = id_list_rawcontents.replace(/\s/g, '').replace(/,{2,}/g,',').replace(/^,|,$/g,''); // Remove whitespace, remove excess commas, and remove heading and trailing commas.
+			id_list.value = id_list_preprocessed; //Overwrite raw input with pre-processed id list.
+			const kuid_regex = /\b\d{7}\b/g; //Regex for KUIDs. An ID must be preceeded by a nonword character '\b', must be  exactly 7 digits '\d{7}', and must be proceeded by a nonword character '\b' (nominally a comma or in the case of the last entry, NULL). Test the regular expression against all possible matches in the string 'g'.
+			document.getElementById("verified_ids").value = (id_list_preprocessed.match(kuid_regex)).join(','); //Validated input is stored in a hidden input string to be passed to the server.
+			//return false; //TEST VALUE, COMMENT OUT BEFORE PUSHING
+			//TODO Step 2) Validate Search Term List
+			return true; //UNCOMMENT BEFORE PUSHING
+		}
+	</script>
 </head>
 <body>
 	<?php display_navbar(true); ?>
@@ -28,10 +47,11 @@
 				<div class="card mb-3">
 					<div class="card-body">
 						<h2>Lookup student plans</h2>
-						<form method="GET" action="search.php">
+						<form onsubmit="return validateSearch(event)" method="GET" action="search.php">
 							<div class="form-group">
 								<label>Student IDs</label>
 								<textarea id="stu_id_list" name="stu_id_list" class="form-control" placeholder="3011111, 3022222, 3033333, ..."></textarea>
+								<input type="hidden" id="verified_ids" name="verified_ids">
 							</div>
 							<div class="form-group">
 								<label>Filter plans by name (optional)</label>
