@@ -45,13 +45,19 @@
 				id_list.classList.add("invalid");
 				error_text = document.getElementById("id_error");
 				error_text.hidden=false;
-				error_text.innerText = "The following KU IDs are invalid: "+invalid_ids_arr.join(", ");
+				error_text.innerText = "The following IDs are of invalid type: "+invalid_ids_arr.join(", ");
 				id_list.addEventListener("click", function handler() {document.getElementById("stu_id_list").classList.remove("invalid"); this.removeEventListener("click", handler);});
 				return false;
 			}
 			document.getElementById("id_error").hidden=true; //If the input is valid, but previous attempts were not, we remove the error text so if later the user uses the back button he/she doesn't see the error text for the old input.
-			//return false; //TEST VALUE, COMMENT OUT BEFORE PUSHING
 			//TODO Step 2) Validate Search Term List
+			search_list = document.getElementById("search_term_list");
+			search_list_rawcontents = search_list.value;
+			if (search_list_rawcontents != ""){
+				search_list_preprocessed = search_list_rawcontents.replace(/^\s+|\s+$/g,'')//Remove leading and trailing whitespace. //.replace(/\s{2,}/g, ' ').replace(/^\s|\s$/g,''); //Remove Duplicate spaces including excess spaces between words as well as heading and trailing whitespace
+				search_list.value = search_list_preprocessed;
+			}
+			//return false; //TEST VALUE, COMMENT OUT BEFORE PUSHING
 			return true; //UNCOMMENT BEFORE PUSHING
 		}
 		
@@ -72,7 +78,7 @@
 							<div class="form-group">
 								<label>Student IDs</label>
 								<textarea id="stu_id_list" name="stu_id_list" class="form-control" placeholder="3011111, 3022222, 3033333, ..."></textarea>
-								<p hidden id="id_error" class="text-danger font-italic text-truncate"></p>
+								<p hidden id="id_error" class="text-danger font-italic"></p>
 							</div>
 							<div class="form-group">
 								<label>Filter plans by name (optional)</label>
