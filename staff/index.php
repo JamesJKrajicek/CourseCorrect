@@ -24,16 +24,37 @@
 			id_list_rawcontents = id_list.value;
 			if (id_list_rawcontents == "")
 			{
-				return false;
+				return false; //If the id list is empty return false and prevent the form from firing.
 			}
 			id_list_preprocessed = id_list_rawcontents.replace(/\s/g, '').replace(/,{2,}/g,',').replace(/^,|,$/g,''); // Remove whitespace, remove excess commas, and remove heading and trailing commas.
-			id_list.value = id_list_preprocessed; //Overwrite raw input with pre-processed id list.
-			const kuid_regex = /\b\d{7}\b/g; //Regex for KUIDs. An ID must be preceeded by a nonword character '\b', must be  exactly 7 digits '\d{7}', and must be proceeded by a nonword character '\b' (nominally a comma or in the case of the last entry, NULL). Test the regular expression against all possible matches in the string 'g'.
-			document.getElementById("verified_ids").value = (id_list_preprocessed.match(kuid_regex)).join(','); //Validated input is stored in a hidden input string to be passed to the server.
+			id_list.value = id_list_preprocessed; //Overwrite raw input in textarea with pre-processed id list.
+			id_list_arr = id_list.value.split(',');// Create an array from the pre-processed string.
+			const kuid_regex = /^\d{7}$/;
+			const invalid_ids_arr = []; //Create an array to store invalid ids
+			invalid_id_detected = false; //Boolean value used to prevent the search from executing if invalid ids are found.
+			for (i=0; i<id_list_arr.length; i++){
+				if (kuid_regex.test(id_list_arr[i])){
+					//Do Nothing
+				}
+				else{ //Add the invalid id to the invalid id array and set the flag.
+					invalid_ids_arr.push(id_list_arr[i]);
+					invalid_id_detected = true;
+				}
+			}
+			if (invalid_id_detected){ //Check the invalid id flag
+				id_list.classList.add("invalid");
+				error_text = document.getElementById("id_error");
+				error_text.hidden=false;
+				error_text.innerText = "The following KU IDs are invalid: "+invalid_ids_arr.join(", ");
+				id_list.addEventListener("click", function handler() {document.getElementById("stu_id_list").classList.remove("invalid"); this.removeEventListener("click", handler);});
+				return false;
+			}
+			document.getElementById("id_error").hidden=true; //If the input is valid, but previous attempts were not, we remove the error text so if later the user uses the back button he/she doesn't see the error text for the old input.
 			//return false; //TEST VALUE, COMMENT OUT BEFORE PUSHING
 			//TODO Step 2) Validate Search Term List
 			return true; //UNCOMMENT BEFORE PUSHING
 		}
+		
 	</script>
 </head>
 <body>
@@ -51,7 +72,7 @@
 							<div class="form-group">
 								<label>Student IDs</label>
 								<textarea id="stu_id_list" name="stu_id_list" class="form-control" placeholder="3011111, 3022222, 3033333, ..."></textarea>
-								<input type="hidden" id="verified_ids" name="verified_ids">
+								<p hidden id="id_error" class="text-danger font-italic text-truncate"></p>
 							</div>
 							<div class="form-group">
 								<label>Filter plans by name (optional)</label>

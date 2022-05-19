@@ -40,3 +40,10 @@ body {
 	flex-direction: column;
 	min-height: 100vh;
 }
+
+textarea.invalid {
+	border: 2px solid red;
+}
+textarea.valid {
+	border: 2px solid lime;
+}

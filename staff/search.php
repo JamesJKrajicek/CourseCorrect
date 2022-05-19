@@ -44,9 +44,9 @@
                         //TODO: Verify valid input (content).
                         return ($arr);
                     }
-                    if (!empty($_GET["verified_ids"]) && !empty($_GET["search_term_list"])){
+                    if (!empty($_GET["stu_id_list"]) && !empty($_GET["search_term_list"])){
                         //Search for plans with a specific keyword in their title restricted to the student's whose IDs were passed in.
-                        $id_arr = parseAndCheckStuIds($_GET["verified_ids"]);
+                        $id_arr = parseAndCheckStuIds($_GET["stu_id_list"]);
                         $term_arr = parseAndCheckSearchTerms($_GET["search_term_list"]);
                         $to_print = $db->query("SELECT user.name, user.kuid, plan.plan_id, plan.plan_title, plan.plan_status 
                                                 FROM plan 
@@ -76,9 +76,9 @@
                             }
                         }
                     }
-                    elseif (!empty($_GET["verified_ids"])){
-                        //Search for plans owned by students whose IDs were passed in via "verified_ids"
-                        $id_arr = parseAndCheckStuIds($_GET["verified_ids"]);
+                    elseif (!empty($_GET["stu_id_list"])){
+                        //Search for plans owned by students whose IDs were passed in via "stu_id_list"
+                        $id_arr = parseAndCheckStuIds($_GET["stu_id_list"]);
                         $to_print = $db->query("SELECT user.name, user.kuid, plan.plan_id, plan.plan_title, plan.plan_status 
                                                 FROM plan 
                                                 INNER JOIN user ON user.kuid IN (" . implode (',', array_fill(0, count($id_arr), '?')) .") 
