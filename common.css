@@ -41,9 +41,9 @@ body {
 	min-height: 100vh;
 }
 
-textarea.invalid {
+.invalid {
 	border: 2px solid red;
 }
-textarea.valid {
+.valid {
 	border: 2px solid lime;
 }

@@ -36,7 +36,7 @@
                         return ($arr);
                     }
                     function parseAndCheckSearchTerms(string $search_terms) {
-                        $arr = explode(" ",$search_terms);
+                        $arr = explode(",",$search_terms);
                         foreach($arr as &$entry){
                             $entry = '%' . $entry . '%';
                         }
@@ -44,10 +44,10 @@
                         //TODO: Verify valid input (content).
                         return ($arr);
                     }
-                    if (!empty($_GET["stu_id_list"]) && !empty($_GET["search_term_list"])){
+                    if (!empty($_GET["stu_id_list"]) && !empty($_GET["passed_search_term_list"])){
                         //Search for plans with a specific keyword in their title restricted to the student's whose IDs were passed in.
                         $id_arr = parseAndCheckStuIds($_GET["stu_id_list"]);
-                        $term_arr = parseAndCheckSearchTerms($_GET["search_term_list"]);
+                        $term_arr = parseAndCheckSearchTerms($_GET["passed_search_term_list"]);
                         $to_print = $db->query("SELECT user.name, user.kuid, plan.plan_id, plan.plan_title, plan.plan_status 
                                                 FROM plan 
                                                 INNER JOIN user ON user.kuid IN (" . implode (',', array_fill(0, count($id_arr), '?')) .")
@@ -57,7 +57,7 @@
                             echo '<tr><td colspan="5" class="text-center">No Entries Found.</td></tr>';
                         }
                         else{
-                            echo '<tr><td colspan="5" class="text-center font-weight-bold">Displaying plans containing the following terms: ' . implode(', ',explode(" ",$_GET["search_term_list"])) . '</td></tr>';
+                            echo '<tr><td colspan="5" class="text-center font-weight-bold">Displaying plans containing the following terms: ' . implode(', ',explode(",",$_GET["passed_search_term_list"])) . '</td></tr>';
                             foreach($to_print as $plan){
                                 echo '<tr data-plan_id ='. $plan["plan_id"].'>';
                                 echo '<td>' . $plan["name"] . '</td>';

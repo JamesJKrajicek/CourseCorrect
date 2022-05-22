@@ -18,7 +18,7 @@
 	<link rel="stylesheet" href="../libs/fontawesome.min.css">
 	<script>
 		function validateSearch(e){
-			//e.preventDefault();
+			//e.preventDefault(); //TODO TEST VALUE. REMOVE BEFORE PULL REQ.
 			//Step 1) Validate Student ID list
 			id_list = document.getElementById("stu_id_list");
 			id_list_rawcontents = id_list.value;
@@ -45,22 +45,69 @@
 				id_list.classList.add("invalid");
 				error_text = document.getElementById("id_error");
 				error_text.hidden=false;
-				error_text.innerText = "The following IDs are of invalid type: "+invalid_ids_arr.join(", ");
+				error_text.innerText = "The following IDs are of an invalid type: "+invalid_ids_arr.join(", ");
 				id_list.addEventListener("click", function handler() {document.getElementById("stu_id_list").classList.remove("invalid"); this.removeEventListener("click", handler);});
 				return false;
 			}
 			document.getElementById("id_error").hidden=true; //If the input is valid, but previous attempts were not, we remove the error text so if later the user uses the back button he/she doesn't see the error text for the old input.
-			//TODO Step 2) Validate Search Term List
+			//Step 2) Validate Search Term List
 			search_list = document.getElementById("search_term_list");
 			search_list_rawcontents = search_list.value;
 			if (search_list_rawcontents != ""){
-				search_list_preprocessed = search_list_rawcontents.replace(/^\s+|\s+$/g,'')//Remove leading and trailing whitespace. //.replace(/\s{2,}/g, ' ').replace(/^\s|\s$/g,''); //Remove Duplicate spaces including excess spaces between words as well as heading and trailing whitespace
-				search_list.value = search_list_preprocessed;
+				search_list_preprocessed = search_list_rawcontents.replace(/^\s+|\s+$/g,'')//Remove leading and trailing whitespace. //.replace(/\s{2,}/g, ' ').replace(/^\s|\s$/g,''); //Remove Duplicate spaces including excess spaces between words as well as heading and trailing whitespace.
+				search_list.value = search_list_preprocessed; //Overwrite raw input in textarea with pre-processed search term list.
+				const temp_search_list_arr = search_list.value.split(' '); //Create an array of search terms by spliting on the spaces.
+				const sorted_search_list_arr = [];
+				const quotes_watcher = {isSet:false, startIndex:0};
+				start_quote_regex = /^"/;
+				end_quote_regex = /"$/;
+				for (i=0;i<temp_search_list_arr.length;i++){
+					if (!quotes_watcher.isSet){//Is the quotes watcher set?
+						if(start_quote_regex.test(temp_search_list_arr[i])){ //If not is there a starting quote present in the entry under evaluation?
+							temp_search_list_arr[i] = temp_search_list_arr[i].substr(1);//If it does, trim out the starting quotation mark.
+							if (end_quote_regex.test(temp_search_list_arr[i])){//Is this entry a single word surrounded by quotes?
+								temp_search_list_arr[i] = temp_search_list_arr[i].slice(0,temp_search_list_arr[i].length-1);//If it is, trim the ending quotation mark...
+								sorted_search_list_arr.push(temp_search_list_arr[i]);// ...and push the result to the sorted list.
+							}
+							else{// If it isn't a single word surround by quotes then set the quote watcher to true and store the starting index.
+								quotes_watcher.isSet = true;
+								quotes_watcher.startIndex = i;
+							}
+						}
+						else{
+							if (end_quote_regex.test(temp_search_list_arr[i])){ //Fault if an end quote is present without a starting quote.
+								return searchErrorSet("Mismatched end quote detected!");
+							}
+							sorted_search_list_arr.push(temp_search_list_arr[i]);//If there are no quotes open and there's no starting quote in the entry then push it to the sorted array.
+						}
+					}
+					else{//If the quotes watcher is set.
+						if (start_quote_regex.test(temp_search_list_arr[i])) {return searchErrorSet("Unterminated quote string detected!");}
+						if (end_quote_regex.test(temp_search_list_arr[i])){//If there is an ending quote present in the entry under evaluation.
+							temp_search_list_arr[i] = temp_search_list_arr[i].slice(0,temp_search_list_arr[i].length-1);//Remove the ending quote.
+							sorted_search_list_arr.push(temp_search_list_arr.slice(quotes_watcher.startIndex,i+1).join(' ')); //Slice the array elements from the quote watchers starting index to the present one, join them into a string, and push the result onto the sorted array.
+							quotes_watcher.isSet = false; //Reset the quotes watcher.
+						}//If the quotes watcher is set but no ending quote was found, keep iterating.
+					}
+				}
+				if (quotes_watcher.isSet){	//Fault if for loop completes and the quotes watcher is still set (we have mismatched quotations marks).
+					return searchErrorSet("Unterminated quote string detected!");
+				}
+				document.getElementById("passed_search_term_list").value = sorted_search_list_arr.join(',');//Take the sorted list and store it in the hidden input object (this prevents the overwritting of the original, unformatted but verified, user input).
+				document.getElementById("search_error").hidden=true; //If the input is valid, but previous attempts were not, we remove the error text so if later the user uses the back button he/she doesn't see the error text for the old input.
 			}
-			//return false; //TEST VALUE, COMMENT OUT BEFORE PUSHING
-			return true; //UNCOMMENT BEFORE PUSHING
+			//return false; //TEST VALUE, COMMENT OUT BEFORE PUSHING. REMOVE BEFORE PULL REQ.
+			return true; //UNCOMMENT BEFORE PUSHING.
 		}
-		
+		function searchErrorSet(str_to_print){
+			search_list = document.getElementById("search_term_list");
+			search_list.classList.add("invalid");
+			error_text = document.getElementById("search_error");
+			error_text.hidden=false;
+			error_text.innerText = "Syntax Error: "+str_to_print;
+			search_list.addEventListener("click", function handler() {document.getElementById("search_term_list").classList.remove("invalid"); this.removeEventListener("click", handler);});
+			return false;
+		}
 	</script>
 </head>
 <body>
@@ -82,7 +129,9 @@
 							</div>
 							<div class="form-group">
 								<label>Filter plans by name (optional)</label>
-								<input id="search_term_list" name="search_term_list" type="text" class="form-control" placeholder="EECS 101">
+								<input id="search_term_list" type="text" class="form-control" placeholder="&quot;EECS 101&quot; SP2022 ...">
+								<input id="passed_search_term_list" name="passed_search_term_list" type="hidden">
+								<p hidden id="search_error" class="text-danger font-italic"></p>
 							</div>
 							<button type="submit" class="btn btn-success"><i class="fas fa-search"></i> Search</button>
 						</form>
