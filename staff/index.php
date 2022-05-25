@@ -19,7 +19,12 @@
 	<script>
 		function validateSearch(e){
 			//e.preventDefault(); //TODO TEST VALUE. REMOVE BEFORE PULL REQ.
-			//Step 1) Validate Student ID list
+			//Purpose: Parse and Validate the user provided Student ID list and Search Term List and provide a graceful response to invalid entries.
+			id_result_bool = idParsingAndValidation();
+			search_term_result_bool = searchTermParsingandValidation();
+			return (id_result_bool && search_term_result_bool);
+		}
+		function idParsingAndValidation (){
 			id_list = document.getElementById("stu_id_list");
 			id_list_rawcontents = id_list.value;
 			if (id_list_rawcontents == "")
@@ -50,7 +55,9 @@
 				return false;
 			}
 			document.getElementById("id_error").hidden=true; //If the input is valid, but previous attempts were not, we remove the error text so if later the user uses the back button he/she doesn't see the error text for the old input.
-			//Step 2) Validate Search Term List
+			return true;
+		}
+		function searchTermParsingandValidation(){
 			search_list = document.getElementById("search_term_list");
 			search_list_rawcontents = search_list.value;
 			if (search_list_rawcontents != ""){
