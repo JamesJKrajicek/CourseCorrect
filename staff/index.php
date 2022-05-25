@@ -21,7 +21,7 @@
 			//e.preventDefault(); //TODO TEST VALUE. REMOVE BEFORE PULL REQ.
 			//Purpose: Parse and Validate the user provided Student ID list and Search Term List and provide a graceful response to invalid entries.
 			id_result_bool = idParsingAndValidation();
-			search_term_result_bool = searchTermParsingandValidation();
+			search_term_result_bool = searchTermParsingAndValidation();
 			return (id_result_bool && search_term_result_bool);
 		}
 		function idParsingAndValidation (){
@@ -57,7 +57,7 @@
 			document.getElementById("id_error").hidden=true; //If the input is valid, but previous attempts were not, we remove the error text so if later the user uses the back button he/she doesn't see the error text for the old input.
 			return true;
 		}
-		function searchTermParsingandValidation(){
+		function searchTermParsingAndValidation(){
 			search_list = document.getElementById("search_term_list");
 			search_list_rawcontents = search_list.value;
 			if (search_list_rawcontents != ""){
@@ -69,28 +69,29 @@
 				start_quote_regex = /^"/;
 				end_quote_regex = /"$/;
 				for (i=0;i<temp_search_list_arr.length;i++){
+					const i_regex_result = {start_q_present:start_quote_regex.test(temp_search_list_arr[i]), end_q_present:end_quote_regex.test(temp_search_list_arr[i])}
 					if (!quotes_watcher.isSet){//Is the quotes watcher set?
-						if(start_quote_regex.test(temp_search_list_arr[i])){ //If not is there a starting quote present in the entry under evaluation?
-							temp_search_list_arr[i] = temp_search_list_arr[i].substr(1);//If it does, trim out the starting quotation mark.
-							if (end_quote_regex.test(temp_search_list_arr[i])){//Is this entry a single word surrounded by quotes?
+						if(i_regex_result.start_q_present){ //If not is there a starting quote present in the entry under evaluation?
+							temp_search_list_arr[i] = temp_search_list_arr[i].substr(1);//If there is, then trim out the starting quotation mark.
+							if (i_regex_result.end_q_present){//Is this entry a single word surrounded by quotes?
 								temp_search_list_arr[i] = temp_search_list_arr[i].slice(0,temp_search_list_arr[i].length-1);//If it is, trim the ending quotation mark...
 								sorted_search_list_arr.push(temp_search_list_arr[i]);// ...and push the result to the sorted list.
 							}
-							else{// If it isn't a single word surround by quotes then set the quote watcher to true and store the starting index.
+							else{// If the entry has a starting quote but it isn't a single word surround by quotes then set the quote watcher to true and store the starting index.
 								quotes_watcher.isSet = true;
 								quotes_watcher.startIndex = i;
 							}
 						}
 						else{
-							if (end_quote_regex.test(temp_search_list_arr[i])){ //Fault if an end quote is present without a starting quote.
+							if (i_regex_result.end_q_present){ //Fault if an end quote is present without a starting quote.
 								return searchErrorSet("Mismatched end quote detected!");
 							}
 							sorted_search_list_arr.push(temp_search_list_arr[i]);//If there are no quotes open and there's no starting quote in the entry then push it to the sorted array.
 						}
 					}
 					else{//If the quotes watcher is set.
-						if (start_quote_regex.test(temp_search_list_arr[i])) {return searchErrorSet("Unterminated quote string detected!");}
-						if (end_quote_regex.test(temp_search_list_arr[i])){//If there is an ending quote present in the entry under evaluation.
+						if (i_regex_result.start_q_present) {return searchErrorSet("Unterminated quote string detected!");}
+						if (i_regex_result.end_q_present){//If there is an ending quote present in the entry under evaluation.
 							temp_search_list_arr[i] = temp_search_list_arr[i].slice(0,temp_search_list_arr[i].length-1);//Remove the ending quote.
 							sorted_search_list_arr.push(temp_search_list_arr.slice(quotes_watcher.startIndex,i+1).join(' ')); //Slice the array elements from the quote watchers starting index to the present one, join them into a string, and push the result onto the sorted array.
 							quotes_watcher.isSet = false; //Reset the quotes watcher.
